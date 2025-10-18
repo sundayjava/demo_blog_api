@@ -97,7 +97,6 @@ pub async fn update_current_user(
         return Err(AppError::Conflict("Email already registered".to_string()));
     }
 
-
     let updated_user = repository::update_user(&pool, user.user_id, dto.into_inner()).await?;
 
     tracing::info!("User updated successfully: {}", user.user_id);
@@ -131,7 +130,6 @@ pub async fn update_user(
         return Err(AppError::Conflict("Username already taken".to_string()));
     }
 
-
     // Check if new email is taken (if provided)
     if let Some(ref email) = dto.email
         && let Some(existing_user) = repository::get_user_by_email(&pool, email).await?
@@ -139,7 +137,6 @@ pub async fn update_user(
     {
         return Err(AppError::Conflict("Email already registered".to_string()));
     }
-
 
     let updated_user = repository::update_user(&pool, *user_id, dto.into_inner()).await?;
 

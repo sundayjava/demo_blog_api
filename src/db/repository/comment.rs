@@ -3,7 +3,7 @@ use crate::models::comment::{
     Comment, CommentCount, CommentQueryParams, CommentWithAuthor, CreateCommentRequest,
     UpdateCommentRequest,
 };
-use sqlx::{PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 /// Create a new comment

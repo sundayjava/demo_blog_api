@@ -5,7 +5,6 @@ use crate::services::password::PasswordService;
 use sqlx::PgPool;
 
 pub async fn seed_admin(pool: &PgPool) -> Result<(), AppError> {
-
     // Check if admin exists
     let admin_email =
         std::env::var("ADMIN_EMAIL").unwrap_or_else(|_| "admin@example.com".to_string());
