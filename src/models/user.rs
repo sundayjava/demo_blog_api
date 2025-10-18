@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -10,6 +12,19 @@ pub enum Role {
     Admin,
     Moderator,
     User,
+}
+
+impl FromStr for Role {
+    type Err = String; // You can define your own error type if you prefer
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "admin" => Ok(Role::Admin),
+            "moderator" => Ok(Role::Moderator),
+            "user" => Ok(Role::User),
+            _ => Err(format!("Invalid role: {}", s)),
+        }
+    }
 }
 
 impl Role {
@@ -31,14 +46,15 @@ impl Role {
     }
 
     pub fn _has_permission(&self, required_role: &Role) -> bool {
-        match (self, required_role) {
-            (Role::Admin, _) => true,
-            (Role::Moderator, Role::Moderator) => true,
-            (Role::Moderator, Role::User) => true,
-            (Role::User, Role::User) => true,
-            _ => false,
-        }
+        matches!(
+            (self, required_role),
+            (Role::Admin, _)
+                | (Role::Moderator, Role::Moderator)
+                | (Role::Moderator, Role::User)
+                | (Role::User, Role::User)
+        )
     }
+
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
