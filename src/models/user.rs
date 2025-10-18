@@ -54,7 +54,6 @@ impl Role {
                 | (Role::User, Role::User)
         )
     }
-
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
