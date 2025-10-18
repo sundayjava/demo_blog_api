@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: blog_db
+    restart: always
+    environment:
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: blog_password
+      POSTGRES_DB: blog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # Rust Blog API
+  blog-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blog_api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      # Database connection string for your app
+      DATABASE_URL: postgres://blog_user:blog_password@db:5432/blog_db
+
+      # Example application config
+      RUST_LOG: info
+      APP_ENV: production
+      APP_PORT: 8080
+
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config
+      - ./migrations:/app/migrations
+
+volumes:
+  db_data:

@@ -1,0 +1,13 @@
+environment = "development"
+
+[server]
+host = "127.0.0.2"
+port = 8080
+
+[database]
+url = "postgres://postgres:ZhaGhaThat...123@localhost/blog_api_dev"
+max_connections = 5
+
+[jwt]
+secret = "dev_secret_key_change_in_production"
+expiration_hours = 24
