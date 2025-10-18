@@ -66,7 +66,7 @@ pub struct CommentAuthor {
 }
 
 #[derive(Debug, Serialize)]
-pub struct CommentWithRepliesResponse {
+pub struct _CommentWithRepliesResponse {
     #[serde(flatten)]
     pub comment: CommentResponse,
     pub replies: Vec<CommentResponse>,
@@ -130,7 +130,7 @@ pub struct CommentWithAuthor {
     // Comment fields
     pub id: Uuid,
     pub post_id: Uuid,
-    pub user_id: Uuid,
+    pub _user_id: Uuid,
     pub content: String,
     pub parent_comment_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,

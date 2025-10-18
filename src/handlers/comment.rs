@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, delete, get, post, put, web};
+use actix_web::{HttpResponse, web};
 use sqlx::PgPool;
 use std::collections::HashMap;
 use uuid::Uuid;

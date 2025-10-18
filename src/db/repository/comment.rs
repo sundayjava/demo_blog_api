@@ -3,7 +3,7 @@ use crate::models::comment::{
     Comment, CommentCount, CommentQueryParams, CommentWithAuthor, CreateCommentRequest,
     UpdateCommentRequest,
 };
-use sqlx::{FromRow, PgPool};
+use sqlx::{PgPool};
 use uuid::Uuid;
 
 /// Create a new comment
@@ -19,7 +19,7 @@ pub async fn create_comment(
             .bind(post_id)
             .fetch_one(pool)
             .await
-            .map_err(|e| AppError::DatabaseError(e))?;
+            .map_err(AppError::DatabaseError)?;
 
     if !post_exists {
         return Err(AppError::NotFound("Post not found".to_string()));
@@ -34,7 +34,7 @@ pub async fn create_comment(
         .bind(post_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
         if !parent_valid {
             return Err(AppError::BadRequest(
@@ -56,7 +56,7 @@ pub async fn create_comment(
     .bind(req.parent_comment_id)
     .fetch_one(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(comment)
 }
@@ -82,7 +82,7 @@ pub async fn get_comment_by_id(
     .bind(comment_id)
     .fetch_optional(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(comment)
 }
@@ -115,7 +115,7 @@ pub async fn get_post_comments(
             .fetch_one(pool)
             .await
     }
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     // Get comments with author info
     let query = format!(
@@ -153,7 +153,7 @@ pub async fn get_post_comments(
             .fetch_all(pool)
             .await
     }
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok((comments, total))
 }
@@ -174,7 +174,7 @@ pub async fn get_replies_counts(
     .bind(comment_ids)
     .fetch_all(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(counts)
 }
@@ -185,7 +185,7 @@ pub async fn get_post_comments_count(pool: &PgPool, post_id: Uuid) -> Result<i64
         .bind(post_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     Ok(count)
 }
@@ -198,7 +198,7 @@ pub async fn get_top_level_comments_count(pool: &PgPool, post_id: Uuid) -> Resul
     .bind(post_id)
     .fetch_one(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(count)
 }
@@ -223,7 +223,7 @@ pub async fn update_comment(
     .bind(user_id)
     .fetch_optional(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?
+    .map_err(AppError::DatabaseError)?
     .ok_or_else(|| {
         AppError::NotFound("Comment not found or you don't have permission".to_string())
     })?;
@@ -242,7 +242,7 @@ pub async fn delete_comment(
         .bind(user_id)
         .execute(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound(
@@ -265,7 +265,7 @@ pub async fn get_user_comments(
         .bind(user_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     // Get comments
     let comments = sqlx::query_as::<_, CommentWithAuthor>(
@@ -288,40 +288,40 @@ pub async fn get_user_comments(
     .bind(offset)
     .fetch_all(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok((comments, total))
 }
 
-/// Get comment counts for multiple posts
-pub async fn get_posts_comments_count(
-    pool: &PgPool,
-    post_ids: &[Uuid],
-) -> Result<Vec<CommentCount>, AppError> {
-    #[derive(FromRow)]
-    struct PostCommentCount {
-        post_id: Uuid,
-        count: i64,
-    }
+// Get comment counts for multiple posts
+// pub async fn get_posts_comments_count(
+//     pool: &PgPool,
+//     post_ids: &[Uuid],
+// ) -> Result<Vec<CommentCount>, AppError> {
+//     #[derive(FromRow)]
+//     struct PostCommentCount {
+//         post_id: Uuid,
+//         count: i64,
+//     }
 
-    let counts = sqlx::query_as::<_, PostCommentCount>(
-        r#"
-        SELECT post_id, COUNT(*) as count
-        FROM comments
-        WHERE post_id = ANY($1)
-        GROUP BY post_id
-        "#,
-    )
-    .bind(post_ids)
-    .fetch_all(pool)
-    .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+//     let counts = sqlx::query_as::<_, PostCommentCount>(
+//         r#"
+//         SELECT post_id, COUNT(*) as count
+//         FROM comments
+//         WHERE post_id = ANY($1)
+//         GROUP BY post_id
+//         "#,
+//     )
+//     .bind(post_ids)
+//     .fetch_all(pool)
+//     .await
+//     .map_err(AppError::DatabaseError)?;
 
-    Ok(counts
-        .into_iter()
-        .map(|c| CommentCount {
-            comment_id: c.post_id,
-            count: c.count,
-        })
-        .collect())
-}
+//     Ok(counts
+//         .into_iter()
+//         .map(|c| CommentCount {
+//             comment_id: c.post_id,
+//             count: c.count,
+//         })
+//         .collect())
+// }

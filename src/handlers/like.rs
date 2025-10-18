@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, delete, get, post, web};
+use actix_web::{HttpResponse, web};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -71,7 +71,7 @@ pub async fn get_post_likes(
     post_id: web::Path<Uuid>,
     query: web::Query<LikesQueryParams>,
 ) -> Result<HttpResponse, AppError> {
-    let (users, total) =
+    let (users, _total) =
         repository::get_post_likes(&pool, *post_id, query.page_size(), query.offset()).await?;
 
     let likes_count = repository::get_post_likes_count(&pool, *post_id).await?;

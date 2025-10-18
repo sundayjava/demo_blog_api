@@ -134,8 +134,8 @@ impl FromRequest for AuthenticatedUser {
 }
 
 impl AuthenticatedUser {
-    pub fn has_permission(&self, required_role: &Role) -> bool {
-        self.role.has_permission(required_role)
+    pub fn _has_permission(&self, required_role: &Role) -> bool {
+        self.role._has_permission(required_role)
     }
 
     pub fn is_admin(&self) -> bool {

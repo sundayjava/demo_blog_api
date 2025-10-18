@@ -29,29 +29,7 @@ pub async fn create_post(
     .bind(&dto.featured_image_url)
     .fetch_one(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
-
-    Ok(post)
-}
-
-/// Get post by ID
-pub async fn get_post_by_id(pool: &PgPool, post_id: Uuid) -> Result<Option<Post>, AppError> {
-    let post = sqlx::query_as::<_, Post>("SELECT * FROM posts WHERE id = $1")
-        .bind(post_id)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| AppError::DatabaseError(e))?;
-
-    Ok(post)
-}
-
-/// Get post by slug
-pub async fn get_post_by_slug(pool: &PgPool, slug: &str) -> Result<Option<Post>, AppError> {
-    let post = sqlx::query_as::<_, Post>("SELECT * FROM posts WHERE slug = $1")
-        .bind(slug)
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(post)
 }
@@ -68,7 +46,7 @@ pub async fn get_author_info(pool: &PgPool, user_id: Uuid) -> Result<AuthorInfo,
     .bind(user_id)
     .fetch_one(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(author)
 }
@@ -128,7 +106,7 @@ pub async fn get_posts(
     let total = count_query_builder
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     // Get posts
     let posts_query = format!(
@@ -168,7 +146,7 @@ pub async fn get_posts(
     let posts = posts_query_builder
         .fetch_all(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     Ok((posts, total))
 }
@@ -247,47 +225,8 @@ pub async fn get_posts_with_stats(
     Ok((posts_with_stats, total))
 }
 
-/// Get single post with stats
-pub async fn get_post_with_stats(
-    pool: &PgPool,
-    post_id: Uuid,
-    current_user_id: Option<Uuid>,
-) -> Result<Option<PostWithStatsResponse>, AppError> {
-    let post = get_post_by_id(pool, post_id).await?;
-
-    if let Some(post) = post {
-        let likes_count = get_post_likes_count(pool, post_id).await?;
-        let comments_count = get_post_comments_count(pool, post_id).await?;
-
-        let user_liked = if let Some(user_id) = current_user_id {
-            has_user_liked_post(pool, user_id, post_id).await?
-        } else {
-            false
-        };
-
-        // let user_bookmarked = if let Some(user_id) = current_user_id {
-        //     has_user_bookmarked_post(pool, user_id, post_id).await?
-        // } else {
-        //     false
-        // };
-
-        let author = get_author_info(pool, post.user_id).await?;
-        let post_response = post.to_response(author);
-        let post_with_stats = post_response.with_stats(
-            likes_count,
-            comments_count,
-            user_liked,
-            // user_bookmarked,
-        );
-
-        Ok(Some(post_with_stats))
-    } else {
-        Ok(None)
-    }
-}
-
 /// Update post
-pub async fn update_post(
+pub async fn _update_post(
     pool: &PgPool,
     post_id: Uuid,
     user_id: Uuid,
@@ -354,7 +293,7 @@ pub async fn update_post(
     let post = query_builder
         .fetch_optional(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?
+        .map_err(AppError::DatabaseError)?
         .ok_or_else(|| {
             AppError::NotFound("Post not found or you don't have permission".to_string())
         })?;
@@ -363,13 +302,13 @@ pub async fn update_post(
 }
 
 /// Delete post
-pub async fn delete_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+pub async fn _delete_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
     let result = sqlx::query("DELETE FROM posts WHERE id = $1 AND user_id = $2")
         .bind(post_id)
         .bind(user_id)
         .execute(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound(
@@ -381,18 +320,18 @@ pub async fn delete_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<
 }
 
 /// Increment post views
-pub async fn increment_views(pool: &PgPool, post_id: Uuid) -> Result<(), AppError> {
+pub async fn _increment_views(pool: &PgPool, post_id: Uuid) -> Result<(), AppError> {
     sqlx::query("UPDATE posts SET views_count = views_count + 1 WHERE id = $1")
         .bind(post_id)
         .execute(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     Ok(())
 }
 
 /// Publish post
-pub async fn publish_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<Post, AppError> {
+pub async fn _publish_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<Post, AppError> {
     let post = sqlx::query_as::<_, Post>(
         r#"
         UPDATE posts
@@ -408,14 +347,14 @@ pub async fn publish_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result
     .bind(user_id)
     .fetch_optional(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?
+    .map_err(AppError::DatabaseError)?
     .ok_or_else(|| AppError::NotFound("Post not found or you don't have permission".to_string()))?;
 
     Ok(post)
 }
 
 /// Archive post
-pub async fn archive_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<Post, AppError> {
+pub async fn _archive_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result<Post, AppError> {
     let post = sqlx::query_as::<_, Post>(
         r#"
         UPDATE posts
@@ -429,7 +368,7 @@ pub async fn archive_post(pool: &PgPool, post_id: Uuid, user_id: Uuid) -> Result
     .bind(user_id)
     .fetch_optional(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?
+    .map_err(AppError::DatabaseError)?
     .ok_or_else(|| AppError::NotFound("Post not found or you don't have permission".to_string()))?;
 
     Ok(post)
@@ -460,17 +399,17 @@ async fn get_posts_likes_count(
     .bind(post_ids)
     .fetch_all(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(counts)
 }
 
-async fn get_post_likes_count(pool: &PgPool, post_id: Uuid) -> Result<i64, AppError> {
+async fn _get_post_likes_count(pool: &PgPool, post_id: Uuid) -> Result<i64, AppError> {
     let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM likes WHERE post_id = $1")
         .bind(post_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     Ok(count)
 }
@@ -496,17 +435,17 @@ async fn get_posts_comments_count(
     .bind(post_ids)
     .fetch_all(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(counts)
 }
 
-async fn get_post_comments_count(pool: &PgPool, post_id: Uuid) -> Result<i64, AppError> {
+async fn _get_post_comments_count(pool: &PgPool, post_id: Uuid) -> Result<i64, AppError> {
     let count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM comments WHERE post_id = $1")
         .bind(post_id)
         .fetch_one(pool)
         .await
-        .map_err(|e| AppError::DatabaseError(e))?;
+        .map_err(AppError::DatabaseError)?;
 
     Ok(count)
 }
@@ -523,12 +462,12 @@ async fn get_user_likes_for_posts(
     .bind(post_ids)
     .fetch_all(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(liked_post_ids)
 }
 
-async fn has_user_liked_post(
+async fn _has_user_liked_post(
     pool: &PgPool,
     user_id: Uuid,
     post_id: Uuid,
@@ -540,43 +479,9 @@ async fn has_user_liked_post(
     .bind(post_id)
     .fetch_one(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(liked)
-}
-
-async fn get_user_bookmarks_for_posts(
-    pool: &PgPool,
-    user_id: Uuid,
-    post_ids: &[Uuid],
-) -> Result<Vec<Uuid>, AppError> {
-    let bookmarked_post_ids = sqlx::query_scalar::<_, Uuid>(
-        "SELECT post_id FROM bookmarks WHERE user_id = $1 AND post_id = ANY($2)",
-    )
-    .bind(user_id)
-    .bind(post_ids)
-    .fetch_all(pool)
-    .await
-    .map_err(|e| AppError::DatabaseError(e))?;
-
-    Ok(bookmarked_post_ids)
-}
-
-async fn has_user_bookmarked_post(
-    pool: &PgPool,
-    user_id: Uuid,
-    post_id: Uuid,
-) -> Result<bool, AppError> {
-    let bookmarked = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS(SELECT 1 FROM bookmarks WHERE user_id = $1 AND post_id = $2)",
-    )
-    .bind(user_id)
-    .bind(post_id)
-    .fetch_one(pool)
-    .await
-    .map_err(|e| AppError::DatabaseError(e))?;
-
-    Ok(bookmarked)
 }
 
 async fn get_authors_info(pool: &PgPool, user_ids: &[Uuid]) -> Result<Vec<AuthorInfo>, AppError> {
@@ -586,7 +491,7 @@ async fn get_authors_info(pool: &PgPool, user_ids: &[Uuid]) -> Result<Vec<Author
     .bind(user_ids)
     .fetch_all(pool)
     .await
-    .map_err(|e| AppError::DatabaseError(e))?;
+    .map_err(AppError::DatabaseError)?;
 
     Ok(authors)
 }

@@ -18,7 +18,7 @@ pub struct Like {
 // REQUEST DTOs
 // ====================================
 #[derive(Debug, Deserialize)]
-pub struct LikePostRequest {
+pub struct _LikePostRequest {
     pub post_id: Uuid,
 }
 
@@ -91,7 +91,7 @@ impl LikesQueryParams {
 // IMPLEMENTATION
 // ====================================
 impl Like {
-    pub fn to_response(self) -> LikeResponse {
+    pub fn _to_response(self) -> LikeResponse {
         LikeResponse {
             id: self.id,
             user_id: self.user_id,

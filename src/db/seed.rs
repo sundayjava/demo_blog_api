@@ -1,4 +1,3 @@
-use crate::config::AppConfig;
 use crate::db::repository::user as repository;
 use crate::error::AppError;
 use crate::models::CreateUserDto;
@@ -6,8 +5,6 @@ use crate::services::password::PasswordService;
 use sqlx::PgPool;
 
 pub async fn seed_admin(pool: &PgPool) -> Result<(), AppError> {
-    let config = AppConfig::from_env()
-        .map_err(|e| AppError::InternalError(format!("Configuration error: {}", e)))?;
 
     // Check if admin exists
     let admin_email =
@@ -37,7 +34,7 @@ pub async fn seed_admin(pool: &PgPool) -> Result<(), AppError> {
     // Update role to admin
     user = repository::update_user_role(pool, user.id, "admin").await?;
 
-    tracing::info!("Admin user created: {}", admin_email);
+    tracing::info!("Admin user created: {}, {}", admin_email, user.role);
 
     Ok(())
 }

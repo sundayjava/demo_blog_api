@@ -22,7 +22,7 @@ impl Role {
         }
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn _as_str(&self) -> &str {
         match self {
             Role::Admin => "admin",
             Role::Moderator => "moderator",
@@ -30,7 +30,7 @@ impl Role {
         }
     }
 
-    pub fn has_permission(&self, required_role: &Role) -> bool {
+    pub fn _has_permission(&self, required_role: &Role) -> bool {
         match (self, required_role) {
             (Role::Admin, _) => true,
             (Role::Moderator, Role::Moderator) => true,
@@ -56,7 +56,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn get_role(&self) -> Role {
+    pub fn _get_role(&self) -> Role {
         Role::from_str(&self.role).unwrap_or(Role::User)
     }
 }

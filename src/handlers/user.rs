@@ -82,22 +82,21 @@ pub async fn update_current_user(
     tracing::info!("Updating current user: {}", user.user_id);
 
     // Check if new username is taken (if provided)
-    if let Some(ref username) = dto.username {
-        if let Some(existing_user) = repository::get_user_by_username(&pool, username).await? {
-            if existing_user.id != user.user_id {
-                return Err(AppError::Conflict("Username already taken".to_string()));
-            }
-        }
+    if let Some(ref username) = dto.username
+        && let Some(existing_user) = repository::get_user_by_username(&pool, username).await?
+        && existing_user.id != user.user_id
+    {
+        return Err(AppError::Conflict("Username already taken".to_string()));
     }
 
     // Check if new email is taken (if provided)
-    if let Some(ref email) = dto.email {
-        if let Some(existing_user) = repository::get_user_by_email(&pool, email).await? {
-            if existing_user.id != user.user_id {
-                return Err(AppError::Conflict("Email already registered".to_string()));
-            }
-        }
+    if let Some(ref email) = dto.email
+        && let Some(existing_user) = repository::get_user_by_email(&pool, email).await?
+        && existing_user.id != user.user_id
+    {
+        return Err(AppError::Conflict("Email already registered".to_string()));
     }
+
 
     let updated_user = repository::update_user(&pool, user.user_id, dto.into_inner()).await?;
 
@@ -125,22 +124,22 @@ pub async fn update_user(
     tracing::info!("Admin {} updating user: {}", user.user_id, user_id);
 
     // Check if new username is taken (if provided)
-    if let Some(ref username) = dto.username {
-        if let Some(existing_user) = repository::get_user_by_username(&pool, username).await? {
-            if existing_user.id != *user_id {
-                return Err(AppError::Conflict("Username already taken".to_string()));
-            }
-        }
+    if let Some(ref username) = dto.username
+        && let Some(existing_user) = repository::get_user_by_username(&pool, username).await?
+        && existing_user.id != *user_id
+    {
+        return Err(AppError::Conflict("Username already taken".to_string()));
     }
 
+
     // Check if new email is taken (if provided)
-    if let Some(ref email) = dto.email {
-        if let Some(existing_user) = repository::get_user_by_email(&pool, email).await? {
-            if existing_user.id != *user_id {
-                return Err(AppError::Conflict("Email already registered".to_string()));
-            }
-        }
+    if let Some(ref email) = dto.email
+        && let Some(existing_user) = repository::get_user_by_email(&pool, email).await?
+        && existing_user.id != *user_id
+    {
+        return Err(AppError::Conflict("Email already registered".to_string()));
     }
+
 
     let updated_user = repository::update_user(&pool, *user_id, dto.into_inner()).await?;
 

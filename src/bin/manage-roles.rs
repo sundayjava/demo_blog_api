@@ -1,7 +1,6 @@
 use role_base_auth::config::AppConfig;
 use role_base_auth::db::{create_pool, repository::user as repository};
 use role_base_auth::error::AppError;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 #[tokio::main]
@@ -12,7 +11,7 @@ async fn main() -> Result<(), AppError> {
     if args.len() < 4 {
         eprintln!("Usage: manage-roles <user-id|email> <role> [--by-email]");
         eprintln!("Roles: admin, moderator, user");
-        eprintln!("");
+        eprintln!("_");
         eprintln!("Examples:");
         eprintln!("  cargo run --bin manage-roles 550e8400-e29b-41d4-a716-446655440000 admin");
         eprintln!("  cargo run --bin manage-roles user@example.com moderator --by-email");

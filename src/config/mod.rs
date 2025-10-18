@@ -44,7 +44,7 @@ impl AppConfig {
         self.environment == "production"
     }
 
-    pub fn is_development(&self) -> bool {
-        self.environment == "development"
-    }
+    // pub fn is_development(&self) -> bool {
+    //     self.environment == "development"
+    // }
 }
