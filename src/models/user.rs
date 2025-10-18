@@ -14,20 +14,8 @@ pub enum Role {
     User,
 }
 
-impl FromStr for Role {
-    type Err = String; // You can define your own error type if you prefer
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "admin" => Ok(Role::Admin),
-            "moderator" => Ok(Role::Moderator),
-            "user" => Ok(Role::User),
-            _ => Err(format!("Invalid role: {}", s)),
-        }
-    }
-}
-
 impl Role {
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "admin" => Some(Role::Admin),
